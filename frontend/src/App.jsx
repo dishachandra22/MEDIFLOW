@@ -18,7 +18,7 @@ function App() {
   return (
     <RoleProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-obsidian-950 dark:text-slate-100 transition-colors duration-200">
           <Navbar />
           <main className="flex-1">
             <Routes>

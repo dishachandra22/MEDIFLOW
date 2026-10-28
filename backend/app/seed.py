@@ -7,16 +7,41 @@ from .models import (
 )
 
 def seed_database(db: Session):
-    # Check if DB is already seeded
-    if db.query(Department).first() is not None:
-        return
-
     today = date.today()
     tomorrow = today + timedelta(days=1)
     day_after = today + timedelta(days=2)
     next_week = today + timedelta(days=5)
 
-    # 1. Departments (8 total)
+    # Check if DB is already seeded
+    if db.query(Department).first() is not None:
+        # Check if existing slots are older than today
+        valid_slot = db.query(TimeSlot).filter(TimeSlot.slot_date >= today).first()
+        if not valid_slot:
+            all_slots = db.query(TimeSlot).order_by(TimeSlot.id.asc()).all()
+            dates = [today, tomorrow, day_after, next_week]
+            slot_times = ["09:00 AM", "10:30 AM", "11:45 AM", "02:00 PM", "03:30 PM", "05:00 PM"]
+            idx = 0
+            for doc_id in range(1, 13):
+                for d in dates:
+                    for st in slot_times:
+                        if idx < len(all_slots):
+                            all_slots[idx].slot_date = d
+                            all_slots[idx].slot_time = st
+                            if doc_id == 1 and d == tomorrow and st == "10:30 AM":
+                                all_slots[idx].is_booked = True
+                            else:
+                                all_slots[idx].is_booked = False
+                            idx += 1
+            # Also ensure Varsha's appointment 1 is on tomorrow
+            app1 = db.query(Appointment).filter(Appointment.id == 1).first()
+            if app1:
+                app1.appointment_date = tomorrow
+                app1.appointment_time = "10:30 AM"
+                app1.status = "Confirmed"
+            db.commit()
+        return
+
+    # 1. Departments (10 total)
     departments_data = [
         {"id": 1, "name": "Cardiology", "description": "Heart & vascular health, ECG, Angiography, Echo", "floor": "First Floor", "room_number": "102-105", "code": "CARD"},
         {"id": 2, "name": "Dermatology", "description": "Skin, hair, nail treatments and allergy care", "floor": "Second Floor", "room_number": "204-206", "code": "DERM"},
@@ -25,14 +50,17 @@ def seed_database(db: Session):
         {"id": 5, "name": "Neurology", "description": "Brain, nerve disorders, migraine & stroke care", "floor": "First Floor", "room_number": "110-112", "code": "NEUR"},
         {"id": 6, "name": "ENT", "description": "Ear, Nose, Throat care, sinus & hearing treatments", "floor": "Ground Floor", "room_number": "018-020", "code": "ENT"},
         {"id": 7, "name": "General Medicine", "description": "Primary healthcare, fever, diabetes & lifestyle management", "floor": "Ground Floor", "room_number": "005-008", "code": "GENM"},
-        {"id": 8, "name": "Radiology", "description": "X-Ray, MRI, CT Scan, Ultrasound imaging services", "floor": "Ground Floor", "room_number": "001-004", "code": "RAD"}
+        {"id": 8, "name": "Radiology", "description": "X-Ray, MRI, CT Scan, Ultrasound imaging services", "floor": "Ground Floor", "room_number": "001-004", "code": "RAD"},
+        {"id": 9, "name": "Obstetrics & Gynecology", "description": "Maternal health, prenatal care, gynecological consultations & wellness", "floor": "Third Floor", "room_number": "301-305", "code": "OBGYN"},
+        {"id": 10, "name": "General Surgery", "description": "Abdominal surgery, laparoscopic procedures, trauma surgery & consultations", "floor": "First Floor", "room_number": "115-120", "code": "SURG"}
     ]
 
     for dept in departments_data:
-        db.add(Department(**dept))
+        if not db.query(Department).filter(Department.id == dept["id"]).first():
+            db.add(Department(**dept))
     db.commit()
 
-    # 2. Doctors (12 total)
+    # 2. Doctors (16 total)
     doctors_data = [
         # Cardiology
         {"id": 1, "name": "Dr. Ananya Rao", "department_id": 1, "specialization": "Senior Cardiologist", "qualification": "MD, DM (Cardiology)", "experience_years": 14, "rating": 4.9, "bio": "Expert in preventive cardiology, coronary interventions, and cardiac arrhythmia management.", "room_number": "102"},
@@ -58,13 +86,22 @@ def seed_database(db: Session):
         # General Medicine
         {"id": 10, "name": "Dr. Priya Sundaram", "department_id": 7, "specialization": "General Physician", "qualification": "MD (General Medicine)", "experience_years": 10, "rating": 4.8, "bio": "Provides comprehensive adult health checks, diabetes care, and lifestyle disease management.", "room_number": "005"},
         {"id": 11, "name": "Dr. Arjun Gupta", "department_id": 7, "specialization": "Internal Medicine Physician", "qualification": "MBBS, MD", "experience_years": 7, "rating": 4.6, "bio": "Focuses on acute fever care, infectious diseases, and routine health evaluations.", "room_number": "006"},
+        {"id": 15, "name": "Dr. Akshatha", "department_id": 7, "specialization": "General Medicine Specialist", "qualification": "MD (General Medicine)", "experience_years": 11, "rating": 4.8, "bio": "Specializes in general healthcare, fever, diabetes management, and preventive medical evaluations.", "room_number": "007"},
 
         # Radiology
-        {"id": 12, "name": "Dr. Sunita Reddy", "department_id": 8, "specialization": "Consultant Radiologist", "qualification": "MD (Radiodiagnosis)", "experience_years": 14, "rating": 4.9, "bio": "Specialist in ultrasound diagnostics, CT scan interpretations, and MRI imaging.", "room_number": "001"}
+        {"id": 12, "name": "Dr. Sunita Reddy", "department_id": 8, "specialization": "Consultant Radiologist", "qualification": "MD (Radiodiagnosis)", "experience_years": 14, "rating": 4.9, "bio": "Specialist in ultrasound diagnostics, CT scan interpretations, and MRI imaging.", "room_number": "001"},
+        {"id": 13, "name": "Dr. Pradeep", "department_id": 8, "specialization": "Radiologist & Diagnostic Specialist", "qualification": "MD (Radiodiagnosis), DNB", "experience_years": 12, "rating": 4.9, "bio": "Expert in advanced diagnostic radiology, MRI imaging, CT scans, and sonography.", "room_number": "002"},
+
+        # Obstetrics & Gynecology (OBGYN)
+        {"id": 14, "name": "Dr. Harshitha", "department_id": 9, "specialization": "OBGYN & Women's Health Specialist", "qualification": "MS (OBGYN), DNB", "experience_years": 10, "rating": 4.9, "bio": "Specialist in prenatal care, obstetrics, gynecological surgery, and women's wellness.", "room_number": "301"},
+
+        # General Surgery
+        {"id": 16, "name": "Dr. Puneeth", "department_id": 10, "specialization": "General Surgeon", "qualification": "MS (General Surgery), FMAS", "experience_years": 13, "rating": 4.9, "bio": "Renowned surgeon specializing in laparoscopic procedures, trauma surgery, and abdominal consultations.", "room_number": "115"}
     ]
 
     for doc in doctors_data:
-        db.add(Doctor(**doc))
+        if not db.query(Doctor).filter(Doctor.id == doc["id"]).first():
+            db.add(Doctor(**doc))
     db.commit()
 
     # 3. Time Slots (across today, tomorrow, day_after, next_week)

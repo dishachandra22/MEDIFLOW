@@ -9,10 +9,19 @@ import {
   Clock, 
   Building, 
   RefreshCw,
-  MessageSquare
+  MessageSquare,
+  RotateCcw,
+  Compass
 } from 'lucide-react';
 import SafetyBanner from '../components/SafetyBanner';
-import { DoctorCard, LocationCard, SummaryCard, FAQCard, AppointmentStatusCard } from '../components/ChatCards';
+import { 
+  DoctorCard, 
+  LocationCard, 
+  SummaryCard, 
+  FAQCard, 
+  AppointmentStatusCard,
+  SafetyCard 
+} from '../components/ChatCards';
 import BookingModal from '../components/BookingModal';
 import { useRole } from '../context/RoleContext';
 
@@ -31,17 +40,17 @@ const SUGGESTED_PROMPTS = [
 
 export const AssistantPage = () => {
   const { patientId, patientName } = useRole();
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'ai',
-      text: `Hello ${patientName}! I am MediFlow AI, your intelligent hospital management assistant. How can I help you today? You can search for doctors, book appointments, check hospital room locations, or summarize your medical records.`,
-      detected_intent: 'General Hospital Assistance',
-      confidence: 0.98,
-      entities: { department: 'General', time_preference: 'anytime', requirement: 'Initial Welcome' },
-      cards: []
-    }
-  ]);
+  const initialWelcome = {
+    id: 1,
+    sender: 'ai',
+    text: `Hello ${patientName}! I am MediFlow AI, your intelligent hospital management assistant. How can I help you today? You can search for doctors, book appointments, check hospital room locations, or summarize your medical records.`,
+    detected_intent: 'General Hospital Assistance',
+    confidence: 0.98,
+    entities: { department: 'General', time_preference: 'anytime', requirement: 'Initial Welcome' },
+    cards: []
+  };
+
+  const [messages, setMessages] = useState([initialWelcome]);
   const [inputQuery, setInputQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
@@ -50,7 +59,9 @@ export const AssistantPage = () => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 1) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   };
 
   useEffect(() => {
@@ -106,7 +117,7 @@ export const AssistantPage = () => {
         {
           id: Date.now() + 1,
           sender: 'ai',
-          text: "I encountered an error processing your query. Please make sure the backend server is running.",
+          text: "I encountered an error connecting to the backend server. Please verify that FastAPI is running on port 8000.",
           detected_intent: "Error",
           confidence: 0.0,
           entities: {},
@@ -116,6 +127,16 @@ export const AssistantPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClearChat = () => {
+    setMessages([
+      {
+        ...initialWelcome,
+        id: Date.now(),
+        text: `Chat reset. Hello ${patientName}! How can MediFlow AI assist you right now?`
+      }
+    ]);
   };
 
   const handleBookClick = (doctor) => {
@@ -149,12 +170,28 @@ export const AssistantPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-slate-50 dark:bg-slate-950 transition-colors">
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-slate-50 dark:bg-obsidian-950 bg-tech-grid transition-colors duration-200">
       <SafetyBanner />
 
       {/* Main Chat Container */}
       <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-between">
         
+        {/* Chat Header Actions */}
+        <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-200 dark:border-obsidian-700">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-mint-neon animate-pulse"></span>
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Live AI Assistant Pipeline Active</span>
+          </div>
+          <button
+            onClick={handleClearChat}
+            className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-mint-neon flex items-center gap-1.5 transition-colors"
+            title="Reset conversation"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Chat</span>
+          </button>
+        </div>
+
         {/* Messages Scroll Area */}
         <div className="space-y-6 mb-4">
           {messages.map((msg) => (
@@ -164,22 +201,22 @@ export const AssistantPage = () => {
               <div className={`flex items-start gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                 
                 {/* Avatar */}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
+                <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
                   msg.sender === 'user' 
-                    ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900' 
-                    : 'bg-gradient-to-tr from-brand-600 to-teal-500 text-white'
+                    ? 'bg-obsidian-850 border border-obsidian-700 text-mint-neon font-bold' 
+                    : 'bg-mint-neon text-obsidian-950 font-bold shadow-glow-mint-sm'
                 }`}>
-                  {msg.sender === 'user' ? patientName[0] : <Bot className="w-4 h-4" />}
+                  {msg.sender === 'user' ? patientName[0] : <Bot className="w-5 h-5 stroke-[2.5]" />}
                 </div>
 
                 {/* Message Content & Metadata */}
-                <div className={`max-w-[88%] sm:max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className={`max-w-[88%] sm:max-w-[82%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   
                   {/* Speech Bubble */}
                   <div className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm ${
                     msg.sender === 'user'
-                      ? 'bg-brand-600 text-white rounded-tr-none'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none'
+                      ? 'bg-obsidian-850 border border-mint-neon/40 text-white rounded-tr-none shadow-glow-mint-sm/20 font-medium'
+                      : 'bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-obsidian-700 text-slate-900 dark:text-slate-100 rounded-tl-none shadow-sm dark:shadow-cyber-card'
                   }`}>
                     <div className="whitespace-pre-line font-medium">
                       {msg.text}
@@ -191,20 +228,20 @@ export const AssistantPage = () => {
                     <div className="mt-2 flex items-center gap-1.5 flex-wrap text-[11px]">
                       
                       {/* Intent Badge */}
-                      <span className="font-bold bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 px-2.5 py-0.5 rounded-full border border-brand-200 dark:border-brand-800 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-brand-500" />
+                      <span className="font-bold bg-mint-neon/10 dark:bg-obsidian-850 text-mint-neon px-2.5 py-0.5 rounded-full border border-mint-neon/30 flex items-center gap-1 shadow-2xs">
+                        <Sparkles className="w-3 h-3 text-mint-neon animate-spin-slow" />
                         Intent: <strong>{msg.detected_intent}</strong> ({Math.round(msg.confidence * 100)}%)
                       </span>
 
                       {/* Extracted Entity Tags */}
                       {msg.entities?.department && (
-                        <span className="font-semibold bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded-md border border-teal-200 dark:border-teal-800 flex items-center gap-1">
+                        <span className="font-semibold bg-cyan-electric/10 dark:bg-obsidian-850 text-cyan-electric px-2.5 py-0.5 rounded-md border border-cyan-electric/30 flex items-center gap-1">
                           <Building className="w-2.5 h-2.5" /> Dept: {msg.entities.department}
                         </span>
                       )}
 
                       {msg.entities?.time_preference && msg.entities.time_preference !== 'anytime' && (
-                        <span className="font-semibold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 flex items-center gap-1">
+                        <span className="font-semibold bg-amber-500/10 dark:bg-obsidian-850 text-amber-400 px-2.5 py-0.5 rounded-md border border-amber-500/30 flex items-center gap-1">
                           <Clock className="w-2.5 h-2.5" /> Time: {msg.entities.time_preference}
                         </span>
                       )}
@@ -226,6 +263,8 @@ export const AssistantPage = () => {
                           return <FAQCard key={idx} faq={card} />;
                         } else if (card.card_type === 'appointment_status_card') {
                           return <AppointmentStatusCard key={idx} appointment={card} />;
+                        } else if (card.card_type === 'safety_card') {
+                          return <SafetyCard key={idx} safetyData={card} />;
                         }
                         return null;
                       })}
@@ -242,12 +281,12 @@ export const AssistantPage = () => {
           {/* Typing indicator */}
           {loading && (
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-600 to-teal-500 text-white flex items-center justify-center font-bold text-xs shrink-0 animate-pulse">
-                <Bot className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-2xl bg-mint-neon text-obsidian-950 flex items-center justify-center font-bold text-xs shrink-0 animate-pulse shadow-glow-mint-sm">
+                <Bot className="w-5 h-5 stroke-[2.5]" />
               </div>
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl rounded-tl-none text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand-500" />
-                <span>Processing query & NLP intent recognition...</span>
+              <div className="bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-obsidian-700 p-3 rounded-2xl rounded-tl-none text-xs text-slate-600 dark:text-mint-neon flex items-center gap-2 shadow-sm">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-mint-neon" />
+                <span>Processing natural language & intent scoring...</span>
               </div>
             </div>
           )}
@@ -257,15 +296,15 @@ export const AssistantPage = () => {
 
         {/* Suggested Prompt Chips */}
         <div className="pt-2 pb-3">
-          <div className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider">
-            <MessageSquare className="w-3 h-3" /> Suggested Prompts for Demo:
+          <div className="text-[11px] font-bold text-slate-400 dark:text-slate-400 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+            <MessageSquare className="w-3.5 h-3.5 text-mint-neon" /> Suggested Prompts for Demo:
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {SUGGESTED_PROMPTS.map((prompt, i) => (
               <button
                 key={i}
                 onClick={() => handleSend(prompt)}
-                className="whitespace-nowrap text-xs px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-brand-400 dark:hover:border-brand-600 hover:bg-brand-50 dark:hover:bg-slate-800 transition-all font-medium shadow-2xs"
+                className="whitespace-nowrap text-xs px-3.5 py-1.5 rounded-xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-obsidian-700 text-slate-700 dark:text-slate-300 hover:border-mint-neon/50 hover:bg-mint-neon/10 hover:text-mint-neon transition-all font-medium shadow-2xs"
               >
                 "{prompt}"
               </button>
@@ -273,23 +312,23 @@ export const AssistantPage = () => {
           </div>
         </div>
 
-        {/* Input Bar */}
-        <div className="sticky bottom-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-lg flex items-center gap-2">
+        {/* Floating Input Bar */}
+        <div className="sticky bottom-4 bg-white dark:bg-obsidian-900/95 border border-slate-200 dark:border-obsidian-700 rounded-2xl p-2 shadow-lg dark:shadow-cyber-card flex items-center gap-2">
           <input
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Ask AI: e.g. 'I need a skin specialist', 'Where is radiology?', 'Summarize my records'..."
-            className="flex-1 text-xs sm:text-sm px-3 py-2 bg-transparent text-slate-900 dark:text-white focus:outline-none placeholder:text-slate-400"
+            className="flex-1 text-xs sm:text-sm px-3.5 py-2.5 bg-transparent text-slate-900 dark:text-white focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
           <button
             onClick={() => handleSend()}
             disabled={!inputQuery.trim() || loading}
-            className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-40 text-white rounded-xl font-semibold text-xs transition-all shadow-md shadow-brand-500/20 flex items-center gap-1.5 shrink-0"
+            className="px-5 py-2.5 bg-mint-neon hover:bg-mint-glow disabled:opacity-40 text-[#04160f] rounded-xl font-bold text-xs transition-all shadow-glow-mint flex items-center gap-1.5 shrink-0"
           >
             <span>Send</span>
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-3.5 h-3.5 stroke-[2.5]" />
           </button>
         </div>
 

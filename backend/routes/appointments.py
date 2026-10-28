@@ -84,3 +84,26 @@ def get_appointments(patient_id: Optional[int] = Query(None), db: Session = Depe
             "created_at": app.created_at.isoformat() if app.created_at else None
         })
     return result
+
+@router.put("/appointments/{appointment_id}/cancel")
+def cancel_appointment(appointment_id: int, db: Session = Depends(get_db)):
+    app = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    app.status = "Cancelled"
+    if app.slot_id:
+        slot = db.query(TimeSlot).filter(TimeSlot.id == app.slot_id).first()
+        if slot:
+            slot.is_booked = False
+    db.commit()
+    return {"message": "Appointment cancelled successfully", "appointment_id": appointment_id, "status": "Cancelled"}
+
+@router.put("/appointments/{appointment_id}/status")
+def update_appointment_status(appointment_id: int, payload: dict, db: Session = Depends(get_db)):
+    app = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    new_status = payload.get("status", "Confirmed")
+    app.status = new_status
+    db.commit()
+    return {"message": f"Appointment status updated to {new_status}", "appointment_id": appointment_id, "status": new_status}

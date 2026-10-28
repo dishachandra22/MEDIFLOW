@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Calendar, Clock, User, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { useRole } from '../context/RoleContext';
 
 export const BookingModal = ({ doctor, initialSlot, isOpen, onClose, onBookingSuccess }) => {
   const { patientId, patientName } = useRole();
-  const [selectedDate, setSelectedDate] = useState(initialSlot?.available_date || initialSlot?.date || new Date().toISOString().split('T')[0]);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(initialSlot?.available_date || initialSlot?.date || todayStr);
   const [selectedTime, setSelectedTime] = useState(initialSlot?.available_time || initialSlot?.time || '10:30 AM');
   const [slotId, setSlotId] = useState(initialSlot?.slot_id || initialSlot?.id || null);
-  const [reason, setReason] = useState('Specialist Consultation');
+  const [reason, setReason] = useState('Specialist Consultation & Health Review');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -38,13 +39,13 @@ export const BookingModal = ({ doctor, initialSlot, isOpen, onClose, onBookingSu
       }
 
       const data = await res.json();
-      setSuccessMsg(`Appointment confirmed with ${data.doctor_name} for ${data.appointment_date} at ${data.appointment_time}!`);
+      setSuccessMsg(`Appointment confirmed with ${data.doctor_name} on ${data.appointment_date} at ${data.appointment_time}!`);
       
       setTimeout(() => {
         setSuccessMsg('');
         if (onBookingSuccess) onBookingSuccess(data);
         onClose();
-      }, 1800);
+      }, 1600);
 
     } catch (err) {
       setErrorMsg(err.message || 'Error booking appointment.');
@@ -54,116 +55,128 @@ export const BookingModal = ({ doctor, initialSlot, isOpen, onClose, onBookingSu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-obsidian-700 rounded-3xl shadow-2xl dark:shadow-cyber-card max-w-md w-full overflow-hidden transition-all">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-slate-900 dark:text-white">Confirm Appointment</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Patient: {patientName}</p>
+        <div className="px-6 py-4 bg-slate-50 dark:bg-obsidian-850 border-b border-slate-200 dark:border-obsidian-700 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-mint-neon/15 flex items-center justify-center text-mint-neon">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">Confirm Appointment</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Patient: {patientName}</p>
+            </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-mint-neon hover:bg-slate-200 dark:hover:bg-obsidian-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Content */}
+        {/* Modal Form Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           
           {/* Doctor Info Card */}
-          <div className="p-3.5 bg-brand-50/70 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 rounded-xl flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+          <div className="p-3.5 bg-slate-50 dark:bg-obsidian-850 border border-slate-200 dark:border-obsidian-700 rounded-2xl flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-mint-neon/15 border border-mint-neon/30 text-mint-neon flex items-center justify-center font-bold text-sm shadow-glow-mint-sm shrink-0">
               {doctor.name ? doctor.name.split(' ').map(n=>n[0]).join('') : 'DR'}
             </div>
             <div>
-              <h4 className="font-semibold text-sm text-slate-900 dark:text-white">{doctor.name}</h4>
-              <p className="text-xs text-brand-600 dark:text-brand-400 font-medium">{doctor.department_name} • {doctor.specialization}</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">{doctor.qualification} ({doctor.experience_years} yrs exp)</p>
+              <h4 className="font-bold text-sm text-slate-900 dark:text-white">{doctor.name}</h4>
+              <p className="text-xs font-semibold text-mint-neon">{doctor.department_name} • {doctor.specialization}</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">{doctor.qualification} • {doctor.experience_years} yrs exp • Room {doctor.room_number || '102'}</p>
             </div>
           </div>
 
           {/* Date & Time selection */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Date
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-mint-neon" /> Date
               </label>
-              <div className="relative">
-                <input 
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
-              </div>
+              <input 
+                type="date"
+                min={todayStr}
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 dark:border-obsidian-700 bg-white dark:bg-obsidian-800 text-slate-900 dark:text-white focus:outline-none focus:border-mint-neon focus:ring-1 focus:ring-mint-neon"
+                required
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Time Slot
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-cyan-electric" /> Time Slot
               </label>
               <select
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 dark:border-obsidian-700 bg-white dark:bg-obsidian-800 text-slate-900 dark:text-white focus:outline-none focus:border-mint-neon focus:ring-1 focus:ring-mint-neon cursor-pointer"
               >
-                <option value="09:00 AM">09:00 AM</option>
-                <option value="10:30 AM">10:30 AM</option>
-                <option value="11:45 AM">11:45 AM</option>
-                <option value="02:00 PM">02:00 PM</option>
-                <option value="03:30 PM">03:30 PM</option>
-                <option value="05:00 PM">05:00 PM</option>
+                <option value="09:00 AM">09:00 AM (Morning)</option>
+                <option value="10:30 AM">10:30 AM (Morning)</option>
+                <option value="11:45 AM">11:45 AM (Morning)</option>
+                <option value="02:00 PM">02:00 PM (Afternoon)</option>
+                <option value="03:30 PM">03:30 PM (Evening)</option>
+                <option value="05:00 PM">05:00 PM (Evening)</option>
               </select>
             </div>
           </div>
 
           {/* Reason Input */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Reason / Consultation Note
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Consultation Reason / Clinical Note
             </label>
             <input 
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Cardiology follow-up, routine skin check"
-              className="w-full text-xs p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              placeholder="e.g. Cardiology follow-up, routine skin check, allergy advice"
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-300 dark:border-obsidian-700 bg-white dark:bg-obsidian-800 text-slate-900 dark:text-white focus:outline-none focus:border-mint-neon focus:ring-1 focus:ring-mint-neon"
+              required
             />
           </div>
 
           {successMsg && (
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+            <div className="p-3 bg-mint-neon/15 dark:bg-obsidian-850 border border-mint-neon/40 text-mint-neon rounded-xl text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-mint-neon" />
               <span>{successMsg}</span>
             </div>
           )}
 
           {errorMsg && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <div className="p-3 bg-red-50 dark:bg-obsidian-850 border border-red-300 dark:border-red-500/40 text-red-800 dark:text-red-400 rounded-xl text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          <div className="pt-2 flex items-center justify-end gap-2">
+          <div className="pt-2 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !!successMsg}
-              className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-xl shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5"
+              className="px-5 py-2.5 text-xs font-bold text-[#04160f] bg-mint-neon hover:bg-mint-glow disabled:opacity-50 rounded-xl shadow-glow-mint transition-all flex items-center gap-1.5"
             >
-              {loading ? 'Booking...' : 'Confirm Booking'}
+              {loading ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-[#04160f]/30 border-t-[#04160f] rounded-full animate-spin" />
+                  Booking Slot...
+                </>
+              ) : (
+                'Confirm Booking'
+              )}
             </button>
           </div>
 

@@ -18,6 +18,7 @@
 5. **Knowledge Base FAQ Retrieval**: Direct query matching against verified hospital policies (timings, registration documents, visiting hours, emergency services) with `"Source: Hospital Knowledge Base"` source tagging.
 6. **Strict Medical Safety Guardrail**: Automatic detection of disease diagnosis, prescription, or symptom interpretation requests with a safe refusal directing users to qualified healthcare professionals.
 7. **Role Switcher & Dark Mode**: Instant role switching between **Patient** (Varsha), **Doctor** (Dr. Ananya Rao), and **Staff Admin** without authentication friction.
+8. **Midnight Blue + Electric Cyan Theme**: Futuristic, professional, AI-focused aesthetic combining deep space midnight navy backgrounds (`#040814`, `#070f26`), electric cyan glowing accents (`#00f0ff`), subtle cyber tech-grids, and sleek glassmorphism.
 
 ---
 

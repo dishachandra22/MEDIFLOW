@@ -9,16 +9,20 @@ export const RoleProvider = ({ children }) => {
   const [doctorId, setDoctorId] = useState(1);
   const [doctorName, setDoctorName] = useState('Dr. Ananya Rao');
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('mediflow_theme') === 'dark';
+    const saved = localStorage.getItem('mediflow_midnight_theme');
+    if (saved !== null) {
+      return saved === 'dark';
+    }
+    return true; // Default to Midnight Blue + Electric Cyan!
   });
 
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('mediflow_theme', 'dark');
+      localStorage.setItem('mediflow_midnight_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('mediflow_theme', 'light');
+      localStorage.setItem('mediflow_midnight_theme', 'light');
     }
   }, [darkMode]);
 

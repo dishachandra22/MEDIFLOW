@@ -4,36 +4,83 @@
 
 @layer base {
   body {
-    @apply font-sans bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100;
+    @apply font-sans bg-slate-50 text-slate-800;
+  }
+  html.dark body {
+    background-color: #04070d;
+    color: #f1f5f9;
   }
 }
 
-/* Custom Animations & Glow Effects */
-@keyframes pulseGlow {
+/* Custom Neon Mint & Cyan Glow Animations */
+@keyframes pulseGlowMint {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 16px rgba(13, 242, 163, 0.4), 0 0 32px rgba(0, 245, 196, 0.15);
   }
   50% {
-    box-shadow: 0 0 30px rgba(20, 184, 166, 0.7);
+    box-shadow: 0 0 35px rgba(13, 242, 163, 0.75), 0 0 60px rgba(13, 242, 163, 0.35);
   }
 }
 
 .animate-pulse-glow {
-  animation: pulseGlow 2.5s infinite ease-in-out;
+  animation: pulseGlowMint 3s infinite ease-in-out;
 }
 
+/* Ambient Radial Glow */
 .bg-radial-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12) 0%, rgba(20, 184, 166, 0.05) 50%, transparent 100%);
+  background: radial-gradient(circle at 50% 0%, rgba(13, 242, 163, 0.08) 0%, rgba(0, 245, 196, 0.04) 40%, transparent 100%);
 }
 
 .dark .bg-radial-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.20) 0%, rgba(20, 184, 166, 0.08) 50%, transparent 100%);
+  background: radial-gradient(circle at 50% -5%, rgba(13, 242, 163, 0.14) 0%, rgba(0, 245, 196, 0.06) 35%, rgba(4, 7, 13, 0.98) 75%);
+}
+
+/* Tech Grid Background Pattern */
+.bg-tech-grid {
+  background-image: 
+    linear-gradient(to right, rgba(13, 242, 163, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 242, 163, 0.03) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+.dark .bg-tech-grid {
+  background-image: 
+    linear-gradient(to right, rgba(13, 242, 163, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 242, 163, 0.04) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/* Cyber & Glassmorphism Utilities */
+.glass-card {
+  @apply bg-white/90 dark:bg-obsidian-900/90 backdrop-blur-xl border border-slate-200/90 dark:border-obsidian-700 shadow-sm dark:shadow-cyber-card transition-all;
+}
+
+.glass-card-hover {
+  @apply hover:border-mint-neon/50 hover:shadow-cyber-card-hover hover:scale-[1.01] transition-all duration-200;
+}
+
+.electric-gradient {
+  background: linear-gradient(135deg, #0df2a3 0%, #00e599 50%, #00f5c4 100%);
+}
+
+.electric-gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #0df2a3 50%, #00f5c4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-neon-mint {
+  @apply bg-mint-neon hover:bg-mint-glow text-[#04160f] font-bold shadow-glow-mint transition-all duration-200 hover:shadow-[0_0_30px_rgba(13,242,163,0.6)] active:scale-[0.98];
+}
+
+.btn-dark-outline {
+  @apply bg-obsidian-850 hover:bg-obsidian-800 text-slate-200 border border-obsidian-700 hover:border-mint-neon/60 transition-all duration-200;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -41,9 +88,9 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  @apply bg-slate-300 dark:bg-obsidian-700/80 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400 dark:bg-slate-600;
+  @apply bg-slate-400 dark:bg-mint-neon/60;
 }

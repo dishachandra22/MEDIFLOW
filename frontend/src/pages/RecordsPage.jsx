@@ -8,7 +8,9 @@ import {
   User, 
   Stethoscope, 
   Activity, 
-  CheckCircle 
+  CheckCircle,
+  Printer,
+  Filter
 } from 'lucide-react';
 import { useRole } from '../context/RoleContext';
 import SafetyBanner from '../components/SafetyBanner';
@@ -19,6 +21,7 @@ export const RecordsPage = () => {
   const [summaryData, setSummaryData] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [records, setRecords] = useState([]);
+  const [filterDept, setFilterDept] = useState('All');
 
   useEffect(() => {
     fetchData();
@@ -52,69 +55,104 @@ export const RecordsPage = () => {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const departmentsList = ['All', ...new Set(records.map(r => r.department_name))];
+
+  const filteredRecords = filterDept === 'All' 
+    ? records 
+    : records.filter(r => r.department_name === filterDept);
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors py-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-obsidian-950 bg-tech-grid transition-colors py-6">
       <SafetyBanner />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 mt-4">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-obsidian-900 p-6 rounded-3xl border border-slate-200 dark:border-obsidian-700 shadow-sm dark:shadow-cyber-card">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-2">
-              <FileText className="w-3.5 h-3.5" /> Medical Records & AI Summarization
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-neon/10 dark:bg-obsidian-850 text-mint-neon text-xs font-bold mb-2 border border-mint-neon/30">
+              <FileText className="w-3.5 h-3.5 text-mint-neon" /> Electronic Health Records & AI Summarizer
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
               Clinical Records for {patientName}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              View historical hospital consultations, diagnostic lab results, and generate plain-language AI overviews.
+              Patient ID: #{patientId} • Blood Group: {patient?.blood_group || 'O+'} • Known allergies: Penicillin • Medical History: {patient?.medical_history_summary || 'Mild hypertension under control'}
             </p>
           </div>
 
-          <button
-            onClick={handleGenerateSummary}
-            disabled={loadingSummary}
-            className="px-5 py-3 rounded-2xl bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 text-white font-semibold text-xs shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-          >
-            {loadingSummary ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Generating AI Summary...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 text-teal-300" />
-                Generate AI Summary
-              </>
+          <div className="flex items-center gap-2.5">
+            {summaryData && (
+              <button
+                onClick={handlePrint}
+                className="px-4 py-2.5 rounded-2xl bg-white dark:bg-obsidian-850 border border-slate-300 dark:border-obsidian-700 text-slate-700 dark:text-slate-200 font-bold text-xs hover:border-mint-neon/50 transition-all flex items-center gap-1.5 shadow-sm"
+                title="Print Summary Document"
+              >
+                <Printer className="w-4 h-4 text-mint-neon" />
+                Print / Save
+              </button>
             )}
-          </button>
+
+            <button
+              onClick={handleGenerateSummary}
+              disabled={loadingSummary}
+              className="px-5 py-2.5 rounded-2xl bg-mint-neon hover:bg-mint-glow text-[#04160f] font-bold text-xs shadow-glow-mint flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              {loadingSummary ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#04160f]" />
+                  Summarizing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 stroke-[2.5]" />
+                  Generate AI Summary
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* AI Generated Summary Result Card */}
         {summaryData && (
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-brand-300 dark:border-brand-800 shadow-md space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold">
-                  <Sparkles className="w-5 h-5 text-teal-500" />
+          <div className="bg-white dark:bg-obsidian-900 p-6 rounded-3xl border border-mint-neon/40 shadow-glow-mint-sm/25 space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-obsidian-700/80 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-mint-neon/15 text-mint-neon flex items-center justify-center font-bold border border-mint-neon/30 shadow-glow-mint-sm">
+                  <Sparkles className="w-5 h-5 text-mint-neon animate-spin-slow" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 dark:text-white">Generated AI Health Summary</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Plain-language administrative overview</p>
+                  <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Generated AI Health Summary</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Plain-language administrative overview synthesized from clinical encounters</p>
                 </div>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-mint-neon/10 dark:bg-obsidian-850 text-mint-neon border border-mint-neon/30">
                 Rule-Based NLP Engine
               </span>
             </div>
 
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line border border-slate-200/80 dark:border-slate-700/60">
+            <div className="p-4 bg-slate-50 dark:bg-obsidian-850 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed whitespace-pre-line border border-slate-200/80 dark:border-obsidian-700">
               {summaryData.summary}
             </div>
 
+            {summaryData.key_insights && (
+              <div className="p-3 bg-mint-neon/10 dark:bg-obsidian-850 rounded-2xl border border-mint-neon/25 space-y-1">
+                <span className="text-xs font-bold text-slate-900 dark:text-mint-neon">Key AI Synthesized Highlights:</span>
+                {summaryData.key_insights.map((ins, i) => (
+                  <div key={i} className="flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                    <CheckCircle className="w-3.5 h-3.5 text-mint-neon shrink-0 mt-0.5" />
+                    <span>{ins}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-2xl text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <span>
                 <strong>Safety & Administrative Notice:</strong> {summaryData.disclaimer}
               </span>
@@ -123,24 +161,44 @@ export const RecordsPage = () => {
         )}
 
         {/* Detailed Medical Records List */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-          <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-brand-500" />
-            Historical Medical Visit Log ({records.length} Records)
-          </h3>
+        <div className="bg-white dark:bg-obsidian-900 p-6 rounded-3xl border border-slate-200 dark:border-obsidian-700 shadow-sm dark:shadow-cyber-card space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-obsidian-700/80 pb-3">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 text-mint-neon" />
+              Historical Medical Visit Log ({filteredRecords.length} Records)
+            </h3>
 
-          {records.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
-              No historical medical records logged yet.
+            {/* Department Filter Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 mr-1" />
+              {departmentsList.map(dept => (
+                <button
+                  key={dept}
+                  onClick={() => setFilterDept(dept)}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                    filterDept === dept
+                      ? 'bg-mint-neon/15 text-mint-neon border border-mint-neon/40 shadow-glow-mint-sm/20'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-white hover:bg-obsidian-800'
+                  }`}
+                >
+                  {dept}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredRecords.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-obsidian-850 rounded-2xl border border-dashed border-slate-200 dark:border-obsidian-700">
+              No historical medical records logged under this filter.
             </div>
           ) : (
             <div className="space-y-4">
-              {records.map((rec) => (
-                <div key={rec.id} className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+              {filteredRecords.map((rec) => (
+                <div key={rec.id} className="p-5 bg-slate-50 dark:bg-obsidian-850 rounded-2xl border border-slate-200/80 dark:border-obsidian-700 space-y-3 hover:border-mint-neon/40 transition-all">
                   
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-700/60 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 dark:border-obsidian-700/60 pb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs">
+                      <div className="w-10 h-10 rounded-xl bg-mint-neon/15 border border-mint-neon/30 text-mint-neon flex items-center justify-center font-bold text-xs shadow-glow-mint-sm shrink-0">
                         {rec.department_name ? rec.department_name[0] : 'M'}
                       </div>
                       <div>
@@ -151,33 +209,39 @@ export const RecordsPage = () => {
                       </div>
                     </div>
 
-                    <span className="text-xs font-semibold px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300">
+                    <span className="text-xs font-semibold px-3 py-1 bg-white dark:bg-obsidian-800 border border-slate-200 dark:border-obsidian-700 rounded-xl text-slate-700 dark:text-slate-300 self-start sm:self-center">
                       Date: {rec.record_date}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800">
-                      <strong className="text-slate-900 dark:text-white block mb-1">Chief Complaint & Symptoms:</strong>
-                      <span className="text-slate-600 dark:text-slate-400">{rec.chief_complaint}</span>
+                    <div className="p-3 bg-white dark:bg-obsidian-900 rounded-xl border border-slate-200/80 dark:border-obsidian-700">
+                      <strong className="block text-slate-500 dark:text-slate-400 mb-1">Chief Complaint:</strong>
+                      <span className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">{rec.chief_complaint}</span>
                     </div>
 
-                    <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800">
-                      <strong className="text-slate-900 dark:text-white block mb-1">Doctor Notes:</strong>
-                      <span className="text-slate-600 dark:text-slate-400">{rec.doctor_notes}</span>
+                    <div className="p-3 bg-white dark:bg-obsidian-900 rounded-xl border border-slate-200/80 dark:border-obsidian-700">
+                      <strong className="block text-slate-500 dark:text-slate-400 mb-1">Doctor's Clinical Notes:</strong>
+                      <span className="text-slate-800 dark:text-slate-200 leading-relaxed">{rec.doctor_notes}</span>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/80 dark:border-teal-800/50 rounded-xl text-xs">
-                    <strong className="text-teal-900 dark:text-teal-200 block mb-1">Diagnostic & Lab Findings:</strong>
-                    <span className="text-teal-800 dark:text-teal-300">{rec.lab_results}</span>
+                  <div className="p-3 bg-white dark:bg-obsidian-900 rounded-xl border border-slate-200/80 dark:border-obsidian-700 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <strong className="text-slate-500 dark:text-slate-400">Diagnostic / Lab Findings:</strong>{' '}
+                      <span className="text-mint-neon font-semibold">{rec.lab_results}</span>
+                    </div>
+                    {rec.follow_up_date && (
+                      <span className="text-[11px] font-bold text-mint-neon bg-mint-neon/10 dark:bg-obsidian-800 px-2.5 py-1 rounded-lg border border-mint-neon/30 shrink-0">
+                        Follow-up: {rec.follow_up_date}
+                      </span>
+                    )}
                   </div>
 
                 </div>
               ))}
             </div>
           )}
-
         </div>
 
       </div>
